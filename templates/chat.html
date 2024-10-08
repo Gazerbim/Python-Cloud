@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Chat</h1>
+    <div id="messages"></div>
+    <input type="text" id="message-input" placeholder="Enter your message">
+    <button id="send-button">Send</button>
+
+    <script>
+        var socket = io();
+
+        socket.on('receive_message', function(message) {
+            $('#messages').append('<p>' + message + '</p>');
+        });
+
+        $('#send-button').click(function() {
+            var message = $('#message-input').val();
+            socket.emit('send_message', { message: message });
+            $('#message-input').val('');
+        });
+    </script>
+</body>
+</html>

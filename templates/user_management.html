@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible"="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Utilisateurs</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        h1 {
+            font-size: 2rem;
+            color: #343a40;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead th {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+        tbody td {
+            text-align: center;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        tbody tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
+        input[type="text"] {
+            width: 80px;
+        }
+        button[type="submit"] {
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background-color: #28a745;
+            border: none;
+            color: white;
+            border-radius: 0.25rem;
+        }
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Gestion des Utilisateurs</h1>
+
+         <!-- Espace pour le dernier message flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% set category, message = messages[-1] %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Liste des utilisateurs -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Nombre de fichiers</th>
+                        <th>Taille totale (Mo)</th>
+                        <th>Quota de stockage (Go)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in user_info %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.num_files }}</td>
+                        <td>{{ user.total_size|round(2) }}</td>
+                        <td>
+                            <form action="{{ url_for('update_quota', user_id=user.id) }}" method="post" class="form-inline">
+                                <input type="text" class="form-control quota-input" name="new_quota" value="{{ user.storage_quota }}" min="0.1" step="0.1" pattern="\d+(\.\d{1,2})?" title="Veuillez entrer un nombre avec jusqu'à deux décimales">
+                                <button type="submit" class="btn btn-success">Mettre à jour</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.querySelectorAll('.quota-input').forEach(input => {
+            input.addEventListener('input', function(event) {
+                // Remplacer la virgule par un point si elle est présente
+                this.value = this.value.replace(',', '.');
+            });
+        });
+    </script>
+</body>
+</html>

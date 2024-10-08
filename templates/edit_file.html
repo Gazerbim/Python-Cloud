@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier le fichier</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Modifier le fichier: {{ filename }}</h1>
+        <form method="POST">
+            <div class="form-group">
+                <textarea class="form-control" name="content" rows="20">{{ content|safe }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Annuler</a>
+        </form>
+    </div>
+</body>
+</html>

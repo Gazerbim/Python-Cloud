@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+    <title>Stockage en ligne</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        .progress {
+            position: relative;
+            height: 2rem; /* Hauteur de la barre de progression */
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            line-height: 2rem; /* Aligne le texte verticalement */
+            text-align: center; /* Centre le texte horizontalement */
+            color: #fff; /* Couleur du texte */
+            background-color: #007bff; /* Couleur de la barre de progression */
+            white-space: nowrap; /* Évite que le texte se casse */
+            overflow: hidden; /* Masque le texte qui dépasse */
+            text-overflow: ellipsis; /* Ajoute des points de suspension si le texte dépasse */
+        }
+
+        .progress-bar-text {
+            position: relative; /* Nécessaire pour centrer le texte avec translate */
+            top: 50%;
+            transform: translateY(-50%); /* Centre le texte verticalement */
+            color: #fff; /* Couleur du texte */
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+		/* Styles pour le mode sombre */
+		body.dark-mode {
+			background-color: #121212;
+			color: #d0d0d0;
+		}
+
+		.container.dark-mode {
+			background-color: #1e1e1e;
+		}
+
+		.dark-mode .btn-primary, .dark-mode .btn-outline-primary {
+			background-color: #007bff;
+			border-color: #007bff;
+			color: #d0d0d0; /* Texte blanc */
+		}
+
+		.dark-mode .btn-secondary, .dark-mode .btn-outline-secondary {
+			background-color: #6c757d;
+			border-color: #6c757d;
+			color: #d0d0d0; /* Texte blanc */
+		}
+
+		.dark-mode .btn-danger, .dark-mode .btn-outline-danger {
+			background-color: #dc3545;
+			border-color: #dc3545;
+			color: #d0d0d0; /* Texte blanc */
+		}
+
+		.dark-mode .list-group-item {
+			background-color: #1e1e1e;
+			border-color: #2e2e2e;
+		}
+
+		.dark-mode .modal-content {
+			background-color: #1e1e1e;
+			color: #d0d0d0;
+		}
+
+		.dark-mode .modal-header {
+			border-bottom: 1px solid #2e2e2e;
+		}
+
+		.dark-mode .modal-footer {
+			border-top: 1px solid #2e2e2e;
+		}
+
+		.dark-mode .progress-bar {
+			background-color: #007bff;
+		}
+
+		.dark-mode .alert-danger {
+			background-color: #dc3545;
+			border-color: #dc3545;
+			color: #d0d0d0;
+		}
+		.title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+		.title-bar-buttons {
+            display: flex;
+            gap: 10px;
+        }
+		@media (max-width: 576px) {
+            .title-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .title-bar-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .progress-bar-text {
+                font-size: 0.75rem;
+            }
+
+            .list-group-item {
+                font-size: 0.875rem;
+            }
+
+            .btn {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.75rem;
+            }
+			.modal-dialog {
+				max-width: 100%;
+				margin: 0.5rem;
+			}
+
+			.modal-content {
+				border-radius: 0.5rem;
+			}
+
+			.modal-body {
+				padding: 1rem;
+			}
+
+			.modal-header, .modal-footer {
+				padding: 0.75rem 1rem;
+			}
+
+			.modal-title {
+				font-size: 1.25rem;
+				text-align: center;
+				width: 100%;
+			}
+
+			#pdfModal .modal-dialog {
+				max-width: 95%;
+				height: 95vh; /* Hauteur maximale du modal pour un PDF */
+			}
+			body {
+				overflow-x: hidden;
+			}
+
+			.container {
+				padding-left: 0.5rem;
+				padding-right: 0.5rem;
+			}
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5">
+		<div class="title-bar">
+            <h3 class="mt-4">Bienvenue {{ current_user.email }} dans votre stockage en ligne</h3>
+        </div>
+		<!-- Espace pour le dernier message flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% set category, message = messages[-1] %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endif %}
+        {% endwith %}
+		<div class="title-bar-buttons">
+                <button id="darkModeToggle" class="btn btn-secondary">Mode sombre</button>
+                <form action="/logout" method="get" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Déconnexion</button>
+                </form>
+				<a href="{{ url_for('delete_account') }}" class="btn btn-danger">Supprimer mon compte</a>
+            </div>
+        <hr>
+
+        <!-- Affichage de l'utilisation du stockage -->
+		<div class="mb-3">
+			<h5>Utilisation du stockage :</h5>
+			<p>Espace utilisé : <strong>{{ total_size_mb|round(2) }} MB</strong> / <strong>{{ storage_quota_mb }} MB</strong></p>
+			<div class="progress" style="height: 30px;">
+				<div id="storageProgressBar" class="progress-bar bg-info" role="progressbar" style="width: {{ storage_percentage }}%;" aria-valuenow="{{ storage_percentage }}" aria-valuemin="0" aria-valuemax="100">
+					<span class="progress-bar-text d-inline-block w-100 text-center">
+						<!-- A supprimer ? -->
+						{{ storage_percentage|round(2) }}%
+					</span>
+				</div>
+			</div>
+		</div>
+
+        
+        <!-- Formulaire d'upload de fichiers -->
+		<form id="uploadForm" method="POST" action="/upload" enctype="multipart/form-data">
+			<div class="form-group">
+				<input type="file" class="form-control-file" name="file" id="file">
+			</div>
+			<button type="submit" class="btn btn-primary">Téléverser</button>
+			<!-- Bouton d'annulation de l'upload -->
+			<button type="button" class="btn btn-danger" id="cancelButton" style="display: none;" onclick="cancelUpload()">Annuler</button>
+		</form>
+
+		<!-- Message d'erreur pour la taille du fichier -->
+		<div id="fileSizeError" class="alert alert-danger mt-3" style="display: none;">Le fichier est trop volumineux et dépasse l'espace de stockage disponible.</div>
+
+        <hr>
+
+        <!-- Barre de progression -->
+        <div class="progress mb-3" style="display: none;">
+            <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar-text">0%</div>
+            </div>
+        </div>
+        <!-- Débit d'upload -->
+        <div id="uploadSpeed" class="mb-3" style="display: none;">
+            <strong>Débit d'upload:</strong> <span id="uploadSpeedValue">0</span> Mo/s
+        </div>
+
+        <!-- Boutons de tri -->
+        <div class="mb-3">
+            <button class="btn btn-outline-primary" id="sortByName">Trier par Nom <span id="sortOrderName"></span></button>
+            <button class="btn btn-outline-primary" id="sortBySize">Trier par Taille <span id="sortOrderSize"></span></button>
+            <button class="btn btn-outline-primary" id="sortByDate">Trier par Date <span id="sortOrderDate"></span></button>
+        </div>
+
+        <ul class="list-group">
+            {% for file in files %}
+            <li class="list-group-item">
+                <strong>{{ file.name }}</strong><br>
+                Taille: {{ "{:.2f}".format(file.size) }} Mo<br>
+                Dernière modification: {{ file.modification_date }}<br>
+
+                {% if file.type in ['jpg', 'jpeg', 'png', 'gif'] %}
+                <!-- Bouton pour visionner l'image -->
+                <button class="btn btn-sm btn-outline-secondary float-right ml-2" onclick="viewImage('{{ file.name }}')">Voir l'image</button>
+                {% endif %}
+
+                {% if file.type == 'pdf' %}
+                <!-- Bouton pour visionner le PDF -->
+                <button class="btn btn-sm btn-outline-secondary float-right ml-2" onclick="viewPdf('{{ file.name }}')">Voir le PDF</button>
+                {% endif %}
+
+                {% if file.type in ['mp4', 'webm', 'ogg'] %}
+                <!-- Bouton pour visionner la vidéo -->
+                <button class="btn btn-sm btn-outline-secondary float-right ml-2" onclick="viewVideo('{{ file.name }}')">Visionner</button>
+                {% endif %}
+                
+                {% if file.type == 'txt' %}
+                <a href="/edit/{{ file.name }}" class="btn btn-sm btn-outline-secondary float-right ml-2">Modifier</a>
+                {% endif %}
+                
+                <a href="/download/{{ file.name }}" class="btn btn-sm btn-outline-primary float-right">Télécharger</a>
+                
+                <form action="/delete/{{ file.name }}" method="post" class="float-right mr-2">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?')">Supprimer</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <!-- Modal pour visionner la vidéo -->
+        <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="videoModalLabel">Visionner la vidéo</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <video id="videoPlayer" class="w-100" controls>
+                            <source id="videoSource" src="" type="video/mp4">
+                            Votre navigateur ne supporte pas la balise vidéo.
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour visionner l'image -->
+        <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">Voir l'image</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <img id="imageViewer" class="img-fluid" src="" alt="Image">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour visionner le PDF -->
+        <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pdfModalLabel">Voir le PDF</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <embed id="pdfViewer" src="" type="application/pdf" width="100%" height="600px" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var currentXHR = null;  // Variable globale pour stocker l'objet XMLHttpRequest
+
+    // Initialisation des variables de tri
+    var sortBy = "{{ sort_by }}";  // Critère de tri actuel (name, size ou modification_date)
+    var sortOrder = "{{ sort_order }}";  // Ordre de tri actuel (asc ou desc)
+
+    // Variables de stockage
+    var totalSizeMb = {{ total_size_mb }};
+    var storageQuotaMb = {{ storage_quota_mb }};
+    var availableSpaceMb = storageQuotaMb - totalSizeMb;
+
+    // Fonction pour mettre à jour l'affichage des ordres de tri
+    function updateSortOrder() {
+        if (sortBy === 'name') {
+            $('#sortOrderName').text(sortOrder === 'asc' ? '▲' : '▼');
+        } else if (sortBy === 'size') {
+            $('#sortOrderSize').text(sortOrder === 'asc' ? '▲' : '▼');
+        } else if (sortBy === 'modification_date') {
+            $('#sortOrderDate').text(sortOrder === 'asc' ? '▲' : '▼');
+        }
+    }
+
+    // Fonction pour trier par nom
+    $('#sortByName').click(function() {
+        sortBy = 'name';
+        sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+        window.location.href = `?sort_by=${sortBy}&sort_order=${sortOrder}`;
+    });
+
+    // Fonction pour trier par taille
+    $('#sortBySize').click(function() {
+        sortBy = 'size';
+        sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+        window.location.href = `?sort_by=${sortBy}&sort_order=${sortOrder}`;
+    });
+
+    // Fonction pour trier par date
+    $('#sortByDate').click(function() {
+        sortBy = 'modification_date';
+        sortOrder = (sortOrder === 'asc') ? 'desc' : 'asc';
+        window.location.href = `?sort_by=${sortBy}&sort_order=${sortOrder}`;
+    });
+
+    // Appel initial pour mettre à jour l'affichage des ordres de tri
+    updateSortOrder();
+
+    // Soumettre le formulaire d'upload avec AJAX pour afficher la barre de progression
+    $('#uploadForm').submit(function(event) {
+        event.preventDefault();
+
+        var form = $(this);
+        var formData = new FormData(form[0]);
+        var file = formData.get('file');
+        var fileSizeMb = file.size / (1024 * 1024); // Taille du fichier en Mo
+
+        // Vérification de la taille du fichier
+        if (fileSizeMb > availableSpaceMb) {
+            $('#fileSizeError').show();
+            return; // Ne pas soumettre le formulaire
+        } else {
+            $('#fileSizeError').hide();
+        }
+
+        var startTime = new Date().getTime();
+        var lastLoaded = 0;
+
+        currentXHR = $.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        var currentTime = new Date().getTime();
+                        var elapsedTime = (currentTime - startTime) / 1000; // Convert to seconds
+                        var loaded = e.loaded - lastLoaded;
+                        var speed = loaded / elapsedTime / (1024 * 1024); // Convert to MB/s
+
+                        var percentComplete = (e.loaded / e.total) * 100;
+                        var sizeMb = e.loaded / (1024 * 1024);
+                        $('#progressBar').width(percentComplete + '%')
+                            .attr('aria-valuenow', percentComplete);
+                        $('#progressBar .progress-bar-text').text(Math.round(percentComplete) + '% (' + sizeMb.toFixed(2) + ' Mo / ' + fileSizeMb.toFixed(2) + ' Mo)');
+                        $('#uploadSpeedValue').text(speed.toFixed(2));
+                        $('#uploadSpeed').show();
+
+                        startTime = currentTime;
+                        lastLoaded = e.loaded;
+                    }
+                });
+                return xhr;
+            },
+            success: function(data) {
+                // Réinitialiser les éléments de progression et masquer la barre
+                $('#progressBar').width('0%').attr('aria-valuenow', 0);
+                $('#progressBar .progress-bar-text').text('0%');
+                $('#uploadSpeed').hide();
+                // Rafraîchir la page après l'upload pour mettre à jour la liste des fichiers
+                window.location.reload(true);
+            },
+            error: function(xhr, status, error) {
+                if (status !== 'abort') {
+                    console.error('Erreur lors de l\'upload:', error);
+                }
+            }
+        });
+
+        // Afficher la barre de progression et le bouton d'annulation
+        $('.progress').show();
+        $('#cancelButton').show();
+    });
+
+    // Fonction pour annuler l'upload en cours
+    function cancelUpload() {
+        if (currentXHR) {
+            currentXHR.abort();  // Annuler l'upload en cours
+            currentXHR = null;  // Réinitialiser la variable
+
+            // Réinitialiser les éléments de progression et masquer la barre et le bouton d'annulation
+            $('#progressBar').width('0%').attr('aria-valuenow', 0);
+            $('#progressBar .progress-bar-text').text('0%');
+            $('.progress').hide();
+            $('#uploadSpeed').hide();
+            $('#cancelButton').hide();
+        }
+    }
+
+    // Fonction pour visionner une vidéo
+    function viewVideo(filename) {
+        var videoUrl = "/uploads/" + filename;
+        $('#videoSource').attr('src', videoUrl);
+        $('#videoPlayer')[0].load();
+        $('#videoModal').modal('show');
+    }
+
+    // Fonction pour visionner une image
+    function viewImage(filename) {
+        var imageUrl = "/uploads/" + filename;
+        $('#imageViewer').attr('src', imageUrl);
+        $('#imageModal').modal('show');
+    }
+
+    // Fonction pour visionner un PDF
+    function viewPdf(filename) {
+        var pdfUrl = "/uploads/" + filename;
+        $('#pdfViewer').attr('src', pdfUrl);
+        $('#pdfModal').modal('show');
+    }
+
+    // Arrêter la vidéo et supprimer la source lorsqu'on ferme le modal
+    $('#videoModal').on('hidden.bs.modal', function () {
+        var videoPlayer = document.getElementById('videoPlayer');
+        videoPlayer.pause();
+        videoPlayer.currentTime = 0; // Remettre la vidéo au début
+        $('#videoSource').attr('src', ''); // Supprimer la source
+        videoPlayer.load();
+    });
+	// Vérifiez si l'utilisateur a déjà activé le mode sombre
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Écoutez le clic sur le bouton de mode sombre
+    document.getElementById('darkModeToggle').addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            localStorage.setItem('darkMode', 'disabled');
+        }
+    });
+</script>
+
+
+    <!-- Importation des scripts Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+</html>
