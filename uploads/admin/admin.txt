@@ -1,0 +1,2 @@
+Even the ADMIN has a stockage
+Go in /user_management to manage users
