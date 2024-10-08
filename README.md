@@ -17,7 +17,7 @@ This Flask application provides a cloud storage system where users can upload, m
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/flask-cloud-storage.git
+    git clone https://github.com/gazerbim/Python-Cloud
     cd flask-cloud-storage
     ```
 
@@ -28,29 +28,21 @@ This Flask application provides a cloud storage system where users can upload, m
 
 3. **Set up environment**:
     - Ensure you have a valid SMTP server for sending emails.
-    - Configure your email credentials in the `send_email` function inside `app.py`.
+    - Configure your email and admin credentials inside the beginning`app.py`.
 
-4. **Initialize the database**:
-    ```bash
-    python -c "from app import create_db; create_db()"
-    ```
+4. **Run the application**:
+    - Use the start.bat file.
 
-5. **Run the application**:
-    ```bash
-    python app.py
-    ```
-
-6. **Access the application**:
-    - Go to `http://localhost:15000` in your browser.
+5. **Access the application**:
+    - Go to `http://127.0.0.1:15000` in your browser.
 
 ## File Structure
 
 ```
 .
 ├── app.py               # Main Flask application
-├── db.sqlite            # SQLite database
+├── instance/db.sqlite            # SQLite database
 ├── templates/           # HTML templates
-├── static/              # Static files (CSS, JS, etc.)
 ├── uploads/             # Folder for user uploads
 ├── server.log           # Log file for server activity
 ├── requirements.txt     # Python dependencies
@@ -66,6 +58,7 @@ This Flask application provides a cloud storage system where users can upload, m
 - `/download/<filename>` - Download a file (requires login)
 - `/delete/<filename>` - Delete a file (requires login)
 - `/user_management` - Admin-only route for managing users
+- and other.
 
 ## Usage
 
