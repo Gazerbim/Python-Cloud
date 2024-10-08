@@ -18,7 +18,7 @@ This Flask application provides a cloud storage system where users can upload, m
 1. **Clone the repository**:
     ```bash
     git clone https://github.com/gazerbim/Python-Cloud
-    cd flask-cloud-storage
+    cd Python-Cloud
     ```
 
 2. **Install dependencies**:
