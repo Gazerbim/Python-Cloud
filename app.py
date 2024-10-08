@@ -11,6 +11,14 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# Server Email infos
+SERVER_EMAIL = "put server email here"
+SERVER_EMAIL_CODE = "put server email code here. ex : zdqz dqzx defs fsef"
+
+# ADMIN INFOS
+ADMIN_MAIL = "admin mail" # You can define in another location for safety
+ADMIN_PASSWORD = "admin password"
+
 # Queue for background tasks
 upload_queue = Queue()
 
@@ -98,9 +106,9 @@ def get_user_files_info(user_folder):
 def create_db():
     with app.app_context():
         db.create_all()
-        if not User.query.filter_by(email='manchec.serguei@gmail.com').first():
-            admin = User(email='manchec.serguei@gmail.com', folder='admin', is_admin=True)
-            admin.set_password('gazerbim')
+        if not User.query.filter_by(email=ADMIN_MAIL).first():
+                admin = User(email=ADMIN_MAIL, folder='admin', is_admin=True)
+            admin.set_password(ADMIN_PASSWORD)
             db.session.add(admin)
             db.session.commit()
 
@@ -454,7 +462,7 @@ def register():
         reset_link = url_for('create_password', email=email, token=token, _external=True)
 
         # Envoyer l'email de confirmation
-        send_email('serguei.manchec@gmail.com', 'mnfb qcaa sdqw pdqn', email, 'Création de mot de passe Mon Cloud',
+        send_email(SERVER_EMAIL, SERVER_EMAIL_CODE, email, 'Création de mot de passe Mon Cloud',
                    f"Veuillez cliquer sur ce lien pour créer votre mot de passe : {reset_link}")
 
         flash('Un email a été envoyé pour créer votre mot de passe.')
@@ -492,7 +500,7 @@ def forgot_password():
             reset_link = url_for('create_password', email=email, token=token, _external=True)
 
             # Envoyer l'email de réinitialisation de mot de passe
-            send_email('serguei.manchec@gmail.com', 'mnfb qcaa sdqw pdqn', email, 'Réinitialisation du mot de passe',
+            send_email(SERVER_EMAIL, SERVER_EMAIL_CODE, email, 'Réinitialisation du mot de passe',
                        f"Veuillez cliquer sur ce lien pour réinitialiser votre mot de passe : {reset_link}")
             flash('Un lien de réinitialisation de mot de passe a été envoyé à votre adresse email.')
             return render_template('demand_conf.html')
