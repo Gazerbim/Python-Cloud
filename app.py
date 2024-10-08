@@ -12,12 +12,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # Server Email infos
-SERVER_EMAIL = "serguei.manchec@gmail.com"
-SERVER_EMAIL_CODE = "mnfb qcaa sdqw pdqn"
+SERVER_EMAIL = "server email"
+SERVER_EMAIL_CODE = "server email code : ex: zjdp urdn ddqk lkjd"
 
 # ADMIN INFOS
-ADMIN_MAIL = "manchec.serguei@gmail.com" # You can define in another location for safety
-ADMIN_PASSWORD = "gazerbim"
+ADMIN_MAIL = "admin email" # You can define in another location for safety
+ADMIN_PASSWORD = "admin password"
 
 # Queue for background tasks
 upload_queue = Queue()
@@ -25,7 +25,7 @@ upload_queue = Queue()
 
 # Initialize Flask app and configuration
 app = Flask(__name__)
-app.secret_key = 'ZDIOFIOHHIO87324FHç&é_jOIFEJHOIJF564153'
+app.secret_key = 'ZDIOFIOHHIO87324FHç&é_jOIFEJHOIJF564153' # You can change it and put it in another location /!\ Recommanded
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
