@@ -12,12 +12,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 # Server Email infos
-SERVER_EMAIL = "put server email here"
-SERVER_EMAIL_CODE = "put server email code here. ex : zdqz dqzx defs fsef"
+SERVER_EMAIL = "serguei.manchec@gmail.com"
+SERVER_EMAIL_CODE = "mnfb qcaa sdqw pdqn"
 
 # ADMIN INFOS
-ADMIN_MAIL = "admin mail" # You can define in another location for safety
-ADMIN_PASSWORD = "admin password"
+ADMIN_MAIL = "manchec.serguei@gmail.com" # You can define in another location for safety
+ADMIN_PASSWORD = "gazerbim"
 
 # Queue for background tasks
 upload_queue = Queue()
@@ -107,7 +107,7 @@ def create_db():
     with app.app_context():
         db.create_all()
         if not User.query.filter_by(email=ADMIN_MAIL).first():
-                admin = User(email=ADMIN_MAIL, folder='admin', is_admin=True)
+            admin = User(email=ADMIN_MAIL, folder='admin', is_admin=True)
             admin.set_password(ADMIN_PASSWORD)
             db.session.add(admin)
             db.session.commit()
@@ -194,7 +194,7 @@ def save_file(content, path):
 
 
 def upload_file_in_background(content, user_folder, filename):
-    upload_path = os.path.join(UPLOAD_FOLDER, user_folder, filename)
+    upload_path = os.path.join(app.config['UPLOAD_FOLDER'], user_folder, filename)  # Use app.config here
     with open(upload_path, 'wb') as f:
         f.write(content)
     logging.info("File uploaded: %s/%s", user_folder, filename)
